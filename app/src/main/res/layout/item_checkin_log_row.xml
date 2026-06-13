@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="3"
+    android:paddingVertical="8dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/txtLogName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.3"
+        android:text="Nama Tamu"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"/>
+
+    <TextView
+        android:id="@+id/txtLogType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="MEMBER"
+        android:textColor="#AAAAAA"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/txtLogTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.7"
+        android:text="18:32"
+        android:textColor="#FF1E27"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:gravity="end" />
+</LinearLayout>

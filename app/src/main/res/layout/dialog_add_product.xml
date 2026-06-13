@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="#1E1E1E"
+    app:cardCornerRadius="16dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/txtDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tambah Produk Baru"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nama Produk"
+            android:textColorHint="#666666"
+            app:hintTextColor="#AAAAAA"
+            app:boxStrokeColor="#888888"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogProductName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Kategori Produk"
+            android:textColorHint="#666666"
+            app:hintTextColor="#AAAAAA"
+            app:boxStrokeColor="#888888"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            android:layout_marginBottom="12dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogProductCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:hint="Harga (Rp)"
+                android:textColorHint="#666666"
+                app:hintTextColor="#AAAAAA"
+                app:boxStrokeColor="#888888"
+                app:boxStrokeWidth="1.5dp"
+                app:boxStrokeWidthFocused="2dp"
+                android:layout_marginRight="4dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/dialogProductPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.9"
+                android:hint="Stok"
+                android:textColorHint="#666666"
+                app:hintTextColor="#AAAAAA"
+                app:boxStrokeColor="#888888"
+                app:boxStrokeWidth="1.5dp"
+                app:boxStrokeWidthFocused="2dp"
+                android:layout_marginRight="4dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/dialogProductStock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.9"
+                android:hint="Satuan"
+                android:textColorHint="#666666"
+                app:hintTextColor="#AAAAAA"
+                app:boxStrokeColor="#888888"
+                app:boxStrokeWidth="1.5dp"
+                app:boxStrokeWidthFocused="2dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/dialogProductUnit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="pcs"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Brand / Merk"
+            android:textColorHint="#666666"
+            app:hintTextColor="#AAAAAA"
+            app:boxStrokeColor="#888888"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogProductBrand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnDialogCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="BATAL"
+                android:backgroundTint="#333333"
+                android:textColor="#AAAAAA"
+                android:layout_marginRight="8dp"
+                app:cornerRadius="6dp" />
+
+            <Button
+                android:id="@+id/btnDialogSave"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="SIMPAN"
+                android:backgroundTint="#FF1E27"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:cornerRadius="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

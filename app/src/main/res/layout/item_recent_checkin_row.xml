@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:weightSum="3"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/txtCiNama"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Nama"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="13sp"
+        android:maxLines="1"
+        android:ellipsize="end"/>
+
+    <TextView
+        android:id="@+id/txtCiStatusTipe"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.0"
+        android:text="MEMBER"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:maxLines="1"/>
+
+    <TextView
+        android:id="@+id/txtCiJamMasuk"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="20:48"
+        android:textColor="#00E676"
+        android:textStyle="bold"
+        android:textSize="12sp"
+        android:gravity="end"
+        android:maxLines="1"/>
+</LinearLayout>
