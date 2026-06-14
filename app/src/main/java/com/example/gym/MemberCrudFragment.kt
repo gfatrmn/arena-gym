@@ -14,10 +14,12 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Base64
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
@@ -35,6 +37,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.journeyapps.barcodescanner.BarcodeEncoder
+import com.google.zxing.BarcodeFormat
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -72,13 +76,16 @@ class MemberCrudFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Terapkan style awal untuk filter kapsul Radio Button
-        setupRadioButtonsStyle()
+        val searchParentView = binding.edSearch.parent as? View
+        searchParentView?.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(Color.parseColor("#1E1E1E"))
+            cornerRadius = 100f
+        }
 
-        // Muat data default pertama kali
+        setupRadioButtonsStyle()
         showMembersData("", "all")
 
-        // Listener Real-time Search Bar (Nama / Nomor Telepon)
         binding.edSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -87,34 +94,27 @@ class MemberCrudFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Listener Perubahan Filter Radio Button Status
         binding.rgStatusFilter.setOnCheckedChangeListener { _, checkedId ->
-            // Update visual background kapsul merah & teks putih tebal secara real-time
             setupRadioButtonsStyle()
-
             currentStatusFilter = when (checkedId) {
                 R.id.rbActive -> "active"
                 R.id.rbInactive -> "inactive"
                 else -> "all"
             }
-
             showMembersData(binding.edSearch.text.toString().trim(), currentStatusFilter)
         }
 
-        // Tombol FAB tambah data baru
         binding.fabAddMember.setOnClickListener {
             openMemberModal(null)
         }
     }
 
-    // FUNGSI UTAMA: Mewarnai Kapsul Radio Button Secara Dinamis & Responsif
     private fun setupRadioButtonsStyle() {
         try {
             for (i in 0 until binding.rgStatusFilter.childCount) {
                 val view = binding.rgStatusFilter.getChildAt(i)
                 if (view is RadioButton) {
                     if (view.isChecked) {
-                        // Jika dipilih: Aktifkan background merah Arena Gym & teks putih tebal
                         view.background = GradientDrawable().apply {
                             shape = GradientDrawable.RECTANGLE
                             setColor(Color.parseColor("#FF1E27"))
@@ -123,7 +123,6 @@ class MemberCrudFragment : Fragment() {
                         view.setTextColor(Color.parseColor("#FFFFFF"))
                         view.setTypeface(null, Typeface.BOLD)
                     } else {
-                        // Jika pasif: Hilangkan background, teks abu-abu tipis biasa
                         view.background = null
                         view.setTextColor(Color.parseColor("#888888"))
                         view.setTypeface(null, Typeface.NORMAL)
@@ -133,6 +132,56 @@ class MemberCrudFragment : Fragment() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun showQrCodeDialog(memberId: String, name: String, phone: String, expired: String) {
+        val qrDialog = BottomSheetDialog(requireActivity())
+        val view = layoutInflater.inflate(R.layout.layout_modal_member, null)
+        qrDialog.setContentView(view)
+
+        val txtModalTitle = view.findViewById<TextView>(R.id.txtModalTitle)
+        val modalImUpload = view.findViewById<ShapeableImageView>(R.id.modalImUpload)
+        val ivQrCode = view.findViewById<ImageView>(R.id.modalIvQrCode)
+        val btnSubmit = view.findViewById<Button>(R.id.modalBtnSubmit)
+
+        modalImUpload.visibility = View.GONE
+
+        view.findViewById<View>(R.id.modalEdMemberId)?.visibility = View.GONE
+        view.findViewById<View>(R.id.modalEdFullName)?.parent?.let { (it as View).visibility = View.GONE }
+        view.findViewById<View>(R.id.modalEdEmail)?.parent?.let { (it as View).visibility = View.GONE }
+        view.findViewById<View>(R.id.modalEdPhone)?.parent?.let { (it as View).visibility = View.GONE }
+        view.findViewById<View>(R.id.modalLayoutExpired)?.visibility = View.GONE
+        view.findViewById<View>(R.id.modalBtnRenew)?.visibility = View.GONE
+        view.findViewById<View>(R.id.modalBtnDelete)?.visibility = View.GONE
+
+        txtModalTitle.text = """
+            IDENTITAS ATLET ARENA GYM
+            
+            ID : $memberId
+            Nama : $name
+            Telepon : $phone
+            Status : $expired
+        """.trimIndent()
+
+        txtModalTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+        txtModalTitle.setLineSpacing(4f, 1.1f)
+
+        try {
+            val barcodeEncoder = BarcodeEncoder()
+            val bitmap = barcodeEncoder.encodeBitmap(memberId, BarcodeFormat.QR_CODE, 550, 550)
+            ivQrCode.setImageBitmap(bitmap)
+            ivQrCode.visibility = View.VISIBLE
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(requireActivity(), "Gagal me-render matriks QR Code", Toast.LENGTH_SHORT).show()
+        }
+
+        btnSubmit.text = "KEMBALI KE DAFTAR"
+        btnSubmit.setOnClickListener {
+            qrDialog.dismiss()
+        }
+
+        qrDialog.show()
     }
 
     private fun openMemberModal(selectedData: JSONObject?) {
@@ -151,6 +200,7 @@ class MemberCrudFragment : Fragment() {
 
         val layoutExpired = view.findViewById<TextInputLayout>(R.id.modalLayoutExpired)
         val edExpiredAt = view.findViewById<TextInputEditText>(R.id.modalEdExpiredAt)
+        val ivQrCode = view.findViewById<ImageView>(R.id.modalIvQrCode)
 
         val btnSubmit = view.findViewById<Button>(R.id.modalBtnSubmit)
         val btnRenew = view.findViewById<Button>(R.id.modalBtnRenew)
@@ -158,6 +208,8 @@ class MemberCrudFragment : Fragment() {
 
         modalImageViewPointer = modalImUpload
         imStr = ""
+
+        ivQrCode.visibility = View.GONE
 
         modalImUpload.setOnClickListener {
             showImageSourceChooser()
@@ -189,7 +241,7 @@ class MemberCrudFragment : Fragment() {
             val name = selectedData.optString("full_name", "")
             val email = selectedData.optString("email", "")
             val phone = selectedData.optString("phone", "")
-            val photoUrl = selectedData.optString("photo_url", "")
+            val photoUrl = selectedData.optString("profile_photo_path", "")
             val expiresAt = selectedData.optString("expires_at", "-")
 
             edId.setText(id)
@@ -335,45 +387,63 @@ class MemberCrudFragment : Fragment() {
         val request = object : StringRequest(
             Request.Method.POST, urlWebService,
             { response ->
+                Log.d("DEBUG_VOLLEY", "JSON Response: $response")
                 try {
                     val jsonArray = JSONArray(response)
                     binding.containerMembersList.removeAllViews()
                     val inflaterRow = LayoutInflater.from(requireActivity())
 
+                    // SINKRONISASI FORMAT DATE: Mendukung format tanggal penuh MySQL (dengan Jam) maupun parsial (Hanya Tanggal)
+                    val sdfFull = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                    val sdfDateOnly = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val currentDate = Date()
+
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
 
+                        val id = obj.optString("id", "")
                         val name = obj.optString("full_name", "-")
                         val phone = obj.optString("phone", "-")
-                        val status = obj.optString("status", "member").lowercase()
-                        val photoUrl = obj.optString("photo_url", "")
-                        val expiresAt = obj.optString("expires_at", "-")
+                        val photoUrl = obj.optString("profile_photo_path", "")
+                        val expiresAt = obj.optString("expires_at", "")
 
-                        // Render baris menggunakan View Binding kustom bawaan layout
                         val rowBinding = ItemMemberRowBinding.inflate(inflaterRow, binding.containerMembersList, false)
 
                         rowBinding.txtRowName.text = name
                         rowBinding.txtRowPhone.text = if (phone == "null" || phone.isEmpty()) "-" else phone
-                        rowBinding.txtRowStatus.text = status.uppercase()
 
-                        rowBinding.txtRowExpired.text = if (expiresAt == "null" || expiresAt.isEmpty()) {
-                            "Masa Aktif: Belum Diatur"
-                        } else {
-                            "Expired: $expiresAt"
-                        }
+                        val expString = if (expiresAt == "null" || expiresAt.isEmpty()) "Belum Diatur" else expiresAt
+                        rowBinding.txtRowExpired.text = "Expired: $expString"
 
                         val imageSource = if (photoUrl != "null" && photoUrl.isNotEmpty()) photoUrl else "https://ui-avatars.com/api/?name=$name&background=333333&color=ffffff"
                         Glide.with(requireActivity()).load(imageSource).circleCrop().into(rowBinding.imgAthlete)
 
-                        // Konfigurasi dot status & warna lencana kanan (Hijau Aktif / Abu-abu Pasif)
                         val dotDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL }
-                        if (status == "active" || status == "aktif" || status == "member") {
-                            dotDrawable.setColor(Color.parseColor("#00E676")) // Hijau Stabilo Aktif
+
+                        // ANTI-CRASH LOGIC: Jika parsing gagal, item list tidak akan hilang/blank, melainkan tetap dicetak
+                        var isMemberActive = false
+                        if (expiresAt.isNotEmpty() && expiresAt != "null") {
+                            try {
+                                val expiryDate = if (expiresAt.contains(":")) sdfFull.parse(expiresAt) else sdfDateOnly.parse(expiresAt)
+                                if (expiryDate != null && expiryDate.after(currentDate)) {
+                                    isMemberActive = true
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                isMemberActive = false // Fallback jika parsing tanggal gagal total
+                            }
+                        }
+
+                        // Mengubah warna komponen row layout secara dinamis
+                        if (isMemberActive) {
+                            rowBinding.txtRowStatus.text = "ACTIVE"
+                            dotDrawable.setColor(Color.parseColor("#00E676")) // Hijau cerah
                             rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#331415"))
                             rowBinding.txtRowStatus.setTextColor(Color.parseColor("#FF1E27"))
                             rowBinding.txtRowExpired.setTextColor(Color.parseColor("#00E676"))
                         } else {
-                            dotDrawable.setColor(Color.parseColor("#FF1E27")) // Merah Expired
+                            rowBinding.txtRowStatus.text = "EXPIRED"
+                            dotDrawable.setColor(Color.parseColor("#FF1E27")) // Merah cerah
                             rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#222222"))
                             rowBinding.txtRowStatus.setTextColor(Color.parseColor("#888888"))
                             rowBinding.txtRowExpired.setTextColor(Color.parseColor("#FF1E27"))
@@ -384,9 +454,25 @@ class MemberCrudFragment : Fragment() {
                             openMemberModal(obj)
                         }
 
+                        rowBinding.root.setOnLongClickListener {
+                            val options = arrayOf("Tampilkan QR Code Member", "Edit Detail Atlet")
+                            AlertDialog.Builder(requireActivity())
+                                .setTitle("Aksi Member: $name")
+                                .setItems(options) { dialogInterface, which ->
+                                    when (which) {
+                                        0 -> showQrCodeDialog(id, name, rowBinding.txtRowPhone.text.toString(), rowBinding.txtRowExpired.text.toString())
+                                        1 -> openMemberModal(obj)
+                                    }
+                                    dialogInterface.dismiss()
+                                }
+                                .create().show()
+                            true
+                        }
+
                         binding.containerMembersList.addView(rowBinding.root)
                     }
                 } catch (e: Exception) {
+                    Log.e("DEBUG_GYM_ERROR", "Gagal memproses JSON: ${e.message}")
                     e.printStackTrace()
                 }
             },
