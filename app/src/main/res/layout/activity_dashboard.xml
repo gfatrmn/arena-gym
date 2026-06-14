@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:background="#121212"
+    android:orientation="vertical">
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingTop="40dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+        android:paddingTop="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -80,7 +79,7 @@
                             android:layout_height="wrap_content"
                             android:text="0"
                             android:textColor="#FFFFFF"
-                            android:textSize="22sp"
+                            android:textSize="28sp"
                             android:textStyle="bold"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -157,42 +156,12 @@
                         android:orientation="horizontal"
                         android:weightSum="3"
                         android:layout_marginBottom="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="NAMA"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1.0"
-                            android:text="TELEPON"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:gravity="center"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="TGL DAFTAR"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:gravity="end"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:text="NAMA MEMBER" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.0" android:text="TELEPON" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="center"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:text="TGL DAFTAR" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#2D2D2D"
-                        android:layout_marginBottom="8dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2D2D2D" android:layout_marginBottom="8dp"/>
 
                     <LinearLayout
                         android:id="@+id/containerRecentMembers"
@@ -208,7 +177,7 @@
                 app:cardBackgroundColor="#1E1E1E"
                 app:cardCornerRadius="12dp"
                 app:strokeWidth="0dp"
-                android:layout_marginBottom="24dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -231,42 +200,12 @@
                         android:orientation="horizontal"
                         android:weightSum="3"
                         android:layout_marginBottom="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="NAMA"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1.0"
-                            android:text="STATUS"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:gravity="center"/>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="WAKTU"
-                            android:textColor="#666666"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:gravity="end"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:text="NAMA MEMBER" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.0" android:text="STATUS TIPE" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="center"/>
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.8" android:text="JAM MASUK" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#2D2D2D"
-                        android:layout_marginBottom="8dp"/>
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2D2D2D" android:layout_marginBottom="8dp"/>
 
                     <LinearLayout
                         android:id="@+id/containerRecentCheckins"
@@ -279,17 +218,4 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#1E1E1E"
-        app:itemIconTint="@color/nav_item_color"
-        app:itemTextColor="@color/nav_item_color"
-        app:menu="@menu/bottom_nav_menu"
-        android:elevation="12dp"
-        app:itemIconSize="22dp"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

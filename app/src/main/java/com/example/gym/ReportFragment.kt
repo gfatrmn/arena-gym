@@ -1,11 +1,12 @@
 package com.example.gym
 
-import android.content.Intent
-
 import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -19,45 +20,25 @@ import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.*
 
-class ReportActivity : AppCompatActivity() {
+class ReportFragment : Fragment() {
 
-    private lateinit var binding: ActivityReportBinding
+    private var _binding: ActivityReportBinding? = null
+    private val binding get() = _binding!!
+
     private val urlWebService = "http://192.168.1.6/mobile/get_report_data.php"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityReportBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = ActivityReportBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        // Sinkronisasi Menu Navigasi Bawah
-        binding.bottomNavigation.selectedItemId = R.id.nav_reports
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
-                R.id.nav_members -> {
-                    startActivity(Intent(this, MemberCrudActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
-                R.id.nav_products -> {
-                    startActivity(Intent(this, ProductCrudActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-                R.id.nav_checkin -> {
-                    val intent = Intent(this, CheckInActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.nav_reports -> true
-                else -> false
-            }
-        }
-
+        // Ambil data laporan keuangan dari server saat fragmen dimuat
         fetchReportDataServer()
     }
 
@@ -84,7 +65,7 @@ class ReportActivity : AppCompatActivity() {
                     for (i in 0 until grafikArray.length()) {
                         val obj = grafikArray.getJSONObject(i)
                         labels.add(obj.getString("bulan"))
-                        // Masukkan index X dan Nilai Uang Y (Dikonversi ke Ribuan/Ribuan agar bar tidak terlalu tinggi di layar)
+                        // Masukkan index X dan Nilai Uang Y
                         entries.add(BarEntry(i.toFloat(), obj.getLong("total").toFloat()))
                     }
 
@@ -94,9 +75,9 @@ class ReportActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
             },
-            { Toast.makeText(this, "Gagal sinkronisasi data laporan keuangan", Toast.LENGTH_SHORT).show() }
+            { Toast.makeText(requireActivity(), "Gagal sinkronisasi data laporan keuangan", Toast.LENGTH_SHORT).show() }
         )
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
     }
 
     private fun setupBarChartVisualization(entries: ArrayList<BarEntry>, labels: ArrayList<String>) {
@@ -137,5 +118,10 @@ class ReportActivity : AppCompatActivity() {
             animateY(1000) // Efek animasi batang naik saat dibuka
             invalidate() // Refresh tampilan grafik
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

@@ -15,13 +15,14 @@ import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -41,9 +42,11 @@ import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MemberCrudActivity : AppCompatActivity() {
+class MemberCrudFragment : Fragment() {
 
-    private lateinit var binding: ActivityMemberCrudBinding
+    private var _binding: ActivityMemberCrudBinding? = null
+    private val binding get() = _binding!!
+
     private var imStr = ""
     private val urlWebService = "http://192.168.1.6/mobile/crud_gym_members.php"
 
@@ -51,17 +54,22 @@ class MemberCrudActivity : AppCompatActivity() {
     private var modalImageViewPointer: ShapeableImageView? = null
     private var currentStatusFilter = "all"
 
-    // Request Code internal mandiri tanpa MediaHelper
     private val REQ_CAMERA = 100
     private val REQ_GALLERY = 101
 
     private var imageUri: Uri? = null
     private var cameraFile: File? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMemberCrudBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = ActivityMemberCrudBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // Set Kapsul Search Bar
         val searchParentView = binding.edSearch.parent as? View
@@ -71,7 +79,7 @@ class MemberCrudActivity : AppCompatActivity() {
             cornerRadius = 100f
         }
 
-        // Set Kapsul Radio Button
+        // Set Kapsul Radio Button Filter
         for (i in 0 until binding.rgStatusFilter.childCount) {
             val rb = binding.rgStatusFilter.getChildAt(i) as RadioButton
             rb.background = GradientDrawable().apply {
@@ -80,45 +88,10 @@ class MemberCrudActivity : AppCompatActivity() {
             }
         }
 
-        // Pastikan indikator ikon Members menyala saat halaman ini aktif
-        binding.bottomNavigation.selectedItemId = R.id.nav_members
-
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-
-                R.id.nav_products -> {
-                    startActivity(Intent(this, ProductCrudActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-
-                // JALUR NAVIGASI BARU: Tambahkan ini agar tombol Check-In bisa merespon!
-                R.id.nav_checkin -> {
-                    startActivity(Intent(this, CheckInActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-
-                R.id.nav_reports -> {
-                    startActivity(Intent(this, ReportActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
-
-                R.id.nav_members -> true // Tetap di halaman kelola member
-                else -> false
-            }
-        }
-
+        // Muat data default pertama kali
         showMembersData("", "all")
 
+        // Listener Search Bar
         binding.edSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -127,6 +100,7 @@ class MemberCrudActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
+        // Listener Radio Button Filter Status
         binding.rgStatusFilter.setOnCheckedChangeListener { _, checkedId ->
             for (i in 0 until binding.rgStatusFilter.childCount) {
                 val rb = binding.rgStatusFilter.getChildAt(i) as RadioButton
@@ -134,9 +108,11 @@ class MemberCrudActivity : AppCompatActivity() {
                 rb.setTypeface(null, android.graphics.Typeface.NORMAL)
             }
 
-            val activeRb = findViewById<RadioButton>(checkedId)
-            activeRb.setTextColor(Color.parseColor("#FFFFFF"))
-            activeRb.setTypeface(null, android.graphics.Typeface.BOLD)
+            val activeRb = binding.root.findViewById<RadioButton>(checkedId)
+            activeRb?.let {
+                it.setTextColor(Color.parseColor("#FFFFFF"))
+                it.setTypeface(null, android.graphics.Typeface.BOLD)
+            }
 
             currentStatusFilter = when (checkedId) {
                 R.id.rbActive -> "active"
@@ -147,13 +123,14 @@ class MemberCrudActivity : AppCompatActivity() {
             showMembersData(binding.edSearch.text.toString().trim(), currentStatusFilter)
         }
 
+        // Tombol tambah data baru
         binding.fabAddMember.setOnClickListener {
             openMemberModal(null)
         }
     }
 
     private fun openMemberModal(selectedData: JSONObject?) {
-        val dialog = BottomSheetDialog(this)
+        val dialog = BottomSheetDialog(requireActivity())
         val view = layoutInflater.inflate(R.layout.layout_modal_member, null)
         dialog.setContentView(view)
 
@@ -216,7 +193,7 @@ class MemberCrudActivity : AppCompatActivity() {
             edExpiredAt.setText(if (expiresAt == "null" || expiresAt.isEmpty()) "Belum Diatur" else expiresAt)
 
             val imageSource = if (photoUrl != "null" && photoUrl.isNotEmpty()) photoUrl else "https://ui-avatars.com/api/?name=$name&background=333333&color=ffffff"
-            Glide.with(this).load(imageSource).circleCrop().into(modalImUpload)
+            Glide.with(requireActivity()).load(imageSource).circleCrop().into(modalImUpload)
 
             btnSubmit.setOnClickListener {
                 val uName = edName.text.toString().trim()
@@ -228,7 +205,7 @@ class MemberCrudActivity : AppCompatActivity() {
             }
 
             btnRenew.setOnClickListener {
-                AlertDialog.Builder(this)
+                AlertDialog.Builder(requireActivity())
                     .setTitle("Perpanjang Masa Aktif")
                     .setMessage("Perpanjang masa aktif member $name selama 1 bulan? Sisa hari aktif otomatis diakumulasikan.")
                     .setPositiveButton("YA, PERPANJANG") { dInterface, _ ->
@@ -245,7 +222,7 @@ class MemberCrudActivity : AppCompatActivity() {
             }
 
             btnDelete.setOnClickListener {
-                AlertDialog.Builder(this)
+                AlertDialog.Builder(requireActivity())
                     .setTitle("Hapus Member")
                     .setMessage("Apakah Anda yakin ingin menghapus Member bernama $name ?")
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -253,9 +230,7 @@ class MemberCrudActivity : AppCompatActivity() {
                         executeCrud("delete", id, "", "", "")
                         dialogInterface.dismiss()
                     }
-                    .setNegativeButton("BATAL") { dialogInterface, _ ->
-                        dialogInterface.dismiss()
-                    }
+                    .setNegativeButton("BATAL") { dialogInterface, _ -> dialogInterface.dismiss() }
                     .create().apply {
                         setOnShowListener {
                             getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1E27"))
@@ -270,18 +245,18 @@ class MemberCrudActivity : AppCompatActivity() {
 
     private fun showImageSourceChooser() {
         val options = arrayOf("Ambil Foto dari Kamera", "Pilih dari Galeri")
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(requireActivity())
             .setTitle("Sumber Foto Profil Atlet")
             .setItems(options) { dialogInterface, which ->
                 when (which) {
                     0 -> {
                         try {
                             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                            cameraFile = File.createTempFile("IMG_${timeStamp}_", ".jpg", cacheDir)
+                            cameraFile = File.createTempFile("IMG_${timeStamp}_", ".jpg", requireActivity().cacheDir)
 
                             imageUri = FileProvider.getUriForFile(
-                                this,
-                                "$packageName.fileprovider",
+                                requireActivity(),
+                                "${requireActivity().packageName}.fileprovider",
                                 cameraFile!!
                             )
 
@@ -292,7 +267,7 @@ class MemberCrudActivity : AppCompatActivity() {
                             startActivityForResult(intent, REQ_CAMERA)
                         } catch (e: Exception) {
                             e.printStackTrace()
-                            Toast.makeText(this, "Gagal meluncurkan hardware kamera", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireActivity(), "Gagal meluncurkan hardware kamera", Toast.LENGTH_SHORT).show()
                         }
                     }
                     1 -> {
@@ -319,8 +294,8 @@ class MemberCrudActivity : AppCompatActivity() {
                 if (requestCode == REQ_GALLERY) {
                     data?.data?.let { uri ->
                         try {
-                            Glide.with(this).load(uri).circleCrop().into(imageView)
-                            val inputStream: InputStream? = contentResolver.openInputStream(uri)
+                            Glide.with(requireActivity()).load(uri).circleCrop().into(imageView)
+                            val inputStream: InputStream? = requireActivity().contentResolver.openInputStream(uri)
                             val bitmap = BitmapFactory.decodeStream(inputStream)
                             val bytes = ByteArrayOutputStream()
                             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, bytes)
@@ -333,7 +308,7 @@ class MemberCrudActivity : AppCompatActivity() {
                     try {
                         val fileToRead = cameraFile
                         if (fileToRead != null && fileToRead.exists()) {
-                            Glide.with(this).load(fileToRead).circleCrop().into(imageView)
+                            Glide.with(requireActivity()).load(fileToRead).circleCrop().into(imageView)
 
                             val bitmap = BitmapFactory.decodeFile(fileToRead.absolutePath)
                             val bytes = ByteArrayOutputStream()
@@ -343,7 +318,7 @@ class MemberCrudActivity : AppCompatActivity() {
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        Toast.makeText(this, "Gagal memproses gambar kamera", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireActivity(), "Gagal memproses gambar kamera", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -365,16 +340,13 @@ class MemberCrudActivity : AppCompatActivity() {
                         val phone = obj.optString("phone", "-")
                         val status = obj.optString("status", "member").lowercase()
                         val photoUrl = obj.optString("photo_url", "")
-
-                        // 1. Ambil data tanggal expires_at dari response server Laragon
                         val expiresAt = obj.optString("expires_at", "-")
 
-                        val rowBinding = ItemMemberRowBinding.inflate(LayoutInflater.from(this), binding.containerMembersList, false)
+                        val rowBinding = ItemMemberRowBinding.inflate(LayoutInflater.from(requireActivity()), binding.containerMembersList, false)
                         rowBinding.txtRowName.text = name
                         rowBinding.txtRowPhone.text = if (phone == "null" || phone.isEmpty()) "-" else phone
                         rowBinding.txtRowStatus.text = status.uppercase()
 
-                        // 2. Tempelkan teks masa berakhir anggota ke layout list row
                         rowBinding.txtRowExpired.text = if (expiresAt == "null" || expiresAt.isEmpty()) {
                             "Masa Aktif: Belum Diatur"
                         } else {
@@ -382,7 +354,7 @@ class MemberCrudActivity : AppCompatActivity() {
                         }
 
                         val imageSource = if (photoUrl != "null" && photoUrl.isNotEmpty()) photoUrl else "https://ui-avatars.com/api/?name=$name&background=333333&color=ffffff"
-                        Glide.with(this).load(imageSource).circleCrop().into(rowBinding.imgAthlete)
+                        Glide.with(requireActivity()).load(imageSource).circleCrop().into(rowBinding.imgAthlete)
 
                         val dotDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL }
                         if (status == "active" || status == "aktif" || status == "member") {
@@ -406,7 +378,7 @@ class MemberCrudActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
             },
-            { Toast.makeText(this, "Gagal sinkronisasi data server", Toast.LENGTH_SHORT).show() }
+            { Toast.makeText(requireActivity(), "Gagal sinkronisasi data server", Toast.LENGTH_SHORT).show() }
         ) {
             override fun getParams(): MutableMap<String, String> {
                 val params = HashMap<String, String>()
@@ -416,7 +388,7 @@ class MemberCrudActivity : AppCompatActivity() {
                 return params
             }
         }
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
     }
 
     private fun executeCrud(mode: String, id: String, name: String, email: String, phone: String) {
@@ -426,7 +398,7 @@ class MemberCrudActivity : AppCompatActivity() {
                 Log.d("DEBUG_GYM", "Respons Server: $response")
                 try {
                     val jsonObject = JSONObject(response)
-                    Toast.makeText(this, jsonObject.getString("message"), Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireActivity(), jsonObject.getString("message"), Toast.LENGTH_LONG).show()
 
                     if (jsonObject.optString("status") != "error") {
                         currentModalDialog?.dismiss()
@@ -436,12 +408,12 @@ class MemberCrudActivity : AppCompatActivity() {
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Toast.makeText(this, "Format respon bermasalah", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireActivity(), "Format respon bermasalah", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
                 error.printStackTrace()
-                Toast.makeText(this, "Gangguan koneksi sistem server Volley", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "Gangguan koneksi sistem server Volley", Toast.LENGTH_SHORT).show()
             }
         ) {
             override fun getParams(): MutableMap<String, String> {
@@ -464,6 +436,11 @@ class MemberCrudActivity : AppCompatActivity() {
             DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         )
 
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

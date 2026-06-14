@@ -6,12 +6,12 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.Request
+import androidx.fragment.app.Fragment
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.example.gym.databinding.ActivityCheckInBinding
@@ -19,20 +19,29 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
-class CheckInActivity : AppCompatActivity() {
+class CheckInFragment : Fragment() {
 
-    private lateinit var binding: ActivityCheckInBinding
+    private var _binding: ActivityCheckInBinding? = null
+    private val binding get() = _binding!!
+
     private val urlWebService = "http://192.168.1.6/mobile/process_checkin.php"
 
     private var memberListNames = ArrayList<String>()
     private var memberListData = HashMap<String, String>()
     private var selectedCheckInType = "member"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityCheckInBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = ActivityCheckInBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Set Background Group Radio Button
         binding.rgCheckInType.background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(Color.parseColor("#1E1E1E"))
@@ -40,37 +49,7 @@ class CheckInActivity : AppCompatActivity() {
         }
         setupRadioButtonsStyle()
 
-        binding.bottomNavigation.selectedItemId = R.id.nav_checkin
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-                R.id.nav_checkin -> true
-                R.id.nav_members -> {
-                    startActivity(Intent(this, MemberCrudActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    finish()
-                    true
-                }
-
-                R.id.nav_products -> {
-                    startActivity(Intent(this, ProductCrudActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
-
-                R.id.nav_reports -> {
-                    startActivity(Intent(this, ReportActivity::class.java))
-                    overridePendingTransition(0, 0); finish(); true
-                }
-                R.id.nav_checkin -> true
-                else -> false
-            }
-        }
-
+        // Listener pergantian tipe check-in (Member / Tamu Non-Member)
         binding.rgCheckInType.setOnCheckedChangeListener { _, checkedId ->
             setupRadioButtonsStyle()
             if (checkedId == R.id.rbTypeMember) {
@@ -84,9 +63,11 @@ class CheckInActivity : AppCompatActivity() {
             }
         }
 
+        // Muat data drop-down pilihan member dan log harian
         fetchMemberSelectionData()
         loadCheckInLogs()
 
+        // Listener tombol submit check-in gerbang depan
         binding.btnSubmitCheckIn.setOnClickListener {
             processCheckInSubmit()
         }
@@ -131,7 +112,8 @@ class CheckInActivity : AppCompatActivity() {
                         memberListData[name] = id
                     }
 
-                    val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, memberListNames)
+                    // Ganti 'this' menjadi 'requireActivity()'
+                    val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_dropdown_item, memberListNames)
                     binding.autoCompleteMemberAuto.setAdapter(adapter)
 
                     binding.autoCompleteMemberAuto.setDropDownBackgroundDrawable(
@@ -142,12 +124,12 @@ class CheckInActivity : AppCompatActivity() {
                 }
             },
             {
-                Toast.makeText(this, "Gagal sinkronisasi data pilihan member", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "Gagal sinkronisasi data pilihan member", Toast.LENGTH_SHORT).show()
             }
         ) {
             override fun getParams(): Map<String, String> = mapOf("mode" to "get_members")
         }
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
     }
 
     private fun loadCheckInLogs() {
@@ -156,9 +138,13 @@ class CheckInActivity : AppCompatActivity() {
                 try {
                     binding.containerCheckInLogs.removeAllViews()
                     val jsonArray = JSONArray(response)
+                    val inflaterRow = LayoutInflater.from(requireActivity())
+
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
-                        val row = LayoutInflater.from(this).inflate(R.layout.item_checkin_log_row, binding.containerCheckInLogs, false)
+
+                        // Ganti 'this' menjadi 'requireActivity()' via inflaterRow
+                        val row = inflaterRow.inflate(R.layout.item_checkin_log_row, binding.containerCheckInLogs, false)
 
                         row.findViewById<TextView>(R.id.txtLogName).text = obj.optString("name", "-")
                         row.findViewById<TextView>(R.id.txtLogType).text = obj.optString("type", "MEMBER").uppercase()
@@ -171,12 +157,12 @@ class CheckInActivity : AppCompatActivity() {
                 }
             },
             {
-                Toast.makeText(this, "Gagal memuat log harian", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "Gagal memuat log harian", Toast.LENGTH_SHORT).show()
             }
         ) {
             override fun getParams(): Map<String, String> = mapOf("mode" to "get_logs")
         }
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
     }
 
     private fun processCheckInSubmit() {
@@ -211,22 +197,27 @@ class CheckInActivity : AppCompatActivity() {
             { response ->
                 try {
                     val res = JSONObject(response)
-                    Toast.makeText(this, res.getString("message"), Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireActivity(), res.getString("message"), Toast.LENGTH_LONG).show()
                     if (res.getString("status") == "success") {
                         binding.autoCompleteMemberAuto.setText("")
                         binding.edNonMemberName.setText("")
                         loadCheckInLogs()
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Format respon backend bermasalah", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireActivity(), "Format respon backend bermasalah", Toast.LENGTH_SHORT).show()
                 }
             },
             {
-                Toast.makeText(this, "Gagal memproses pengiriman check-in", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireActivity(), "Gagal memproses pengiriman check-in", Toast.LENGTH_SHORT).show()
             }
         ) {
             override fun getParams(): Map<String, String> = params
         }
-        Volley.newRequestQueue(this).add(request)
+        Volley.newRequestQueue(requireActivity()).add(request)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
