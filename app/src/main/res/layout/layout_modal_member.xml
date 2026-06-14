@@ -130,7 +130,7 @@
             android:id="@+id/modalBtnSubmit"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="SIMPAN DATA ATLET"
+            android:text="SIMPAN DATA"
             android:textColor="#FFFFFF"
             android:backgroundTint="#FF1E27"
             android:textStyle="bold"

@@ -156,7 +156,7 @@ class MemberCrudFragment : Fragment() {
         view.findViewById<View>(R.id.modalBtnDelete)?.visibility = View.GONE
 
         txtModalTitle.text = """
-            IDENTITAS ATLET ARENA GYM
+            IDENTITAS MEMBER ARENA GYM
             
             ID : $memberId
             Nama : $name
@@ -305,7 +305,7 @@ class MemberCrudFragment : Fragment() {
     private fun showImageSourceChooser() {
         val options = arrayOf("Ambil Foto dari Kamera", "Pilih dari Galeri")
         AlertDialog.Builder(requireActivity())
-            .setTitle("Sumber Foto Profil Atlet")
+            .setTitle("Foto Profil Member")
             .setItems(options) { dialogInterface, which ->
                 when (which) {
                     0 -> {
@@ -335,7 +335,7 @@ class MemberCrudFragment : Fragment() {
                             action = Intent.ACTION_GET_CONTENT
                         }
                         @Suppress("DEPRECATION")
-                        startActivityForResult(Intent.createChooser(intent, "Pilih Foto Atlet"), REQ_GALLERY)
+                        startActivityForResult(Intent.createChooser(intent, "Pilih Foto Member"), REQ_GALLERY)
                     }
                 }
                 dialogInterface.dismiss()
@@ -472,13 +472,12 @@ class MemberCrudFragment : Fragment() {
                         }
 
                         rowBinding.root.setOnLongClickListener {
-                            val options = arrayOf("Tampilkan QR Code Member", "Edit Detail Atlet")
+                            val options = arrayOf("Tampilkan QR Code Member")
                             AlertDialog.Builder(requireActivity())
                                 .setTitle("Aksi Member: $name")
                                 .setItems(options) { dialogInterface, which ->
                                     when (which) {
                                         0 -> showQrCodeDialog(id, name, rowBinding.txtRowPhone.text.toString(), rowBinding.txtRowExpired.text.toString())
-                                        1 -> openMemberModal(obj)
                                     }
                                     dialogInterface.dismiss()
                                 }
