@@ -1,6 +1,7 @@
 package com.example.gym
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -393,7 +394,6 @@ class MemberCrudFragment : Fragment() {
                     binding.containerMembersList.removeAllViews()
                     val inflaterRow = LayoutInflater.from(requireActivity())
 
-                    // SINKRONISASI FORMAT DATE: Mendukung format tanggal penuh MySQL (dengan Jam) maupun parsial (Hanya Tanggal)
                     val sdfFull = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
                     val sdfDateOnly = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     val currentDate = Date()
@@ -420,33 +420,50 @@ class MemberCrudFragment : Fragment() {
 
                         val dotDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL }
 
-                        // ANTI-CRASH LOGIC: Jika parsing gagal, item list tidak akan hilang/blank, melainkan tetap dicetak
-                        var isMemberActive = false
+                        // PEWARNAAN 3 KONDISI DINAMIS (ACTIVE, WARNING TINGGAL 3 HARI, EXPIRED)
+                        var memberStatus = "EXPIRED" // Default fallback
                         if (expiresAt.isNotEmpty() && expiresAt != "null") {
                             try {
                                 val expiryDate = if (expiresAt.contains(":")) sdfFull.parse(expiresAt) else sdfDateOnly.parse(expiresAt)
-                                if (expiryDate != null && expiryDate.after(currentDate)) {
-                                    isMemberActive = true
+                                if (expiryDate != null) {
+                                    val diffInMillies = expiryDate.time - currentDate.time
+                                    val diffInDays = diffInMillies / (1000 * 60 * 60 * 24)
+
+                                    memberStatus = when {
+                                        diffInMillies <= 0 -> "EXPIRED"
+                                        diffInDays <= 3 -> "CRITICAL" // Sisa waktu <= 3 hari (Kuning)
+                                        else -> "ACTIVE"              // Lebih dari 3 hari (Hijau)
+                                    }
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
-                                isMemberActive = false // Fallback jika parsing tanggal gagal total
+                                memberStatus = "EXPIRED"
                             }
                         }
 
-                        // Mengubah warna komponen row layout secara dinamis
-                        if (isMemberActive) {
-                            rowBinding.txtRowStatus.text = "ACTIVE"
-                            dotDrawable.setColor(Color.parseColor("#00E676")) // Hijau cerah
-                            rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#331415"))
-                            rowBinding.txtRowStatus.setTextColor(Color.parseColor("#FF1E27"))
-                            rowBinding.txtRowExpired.setTextColor(Color.parseColor("#00E676"))
-                        } else {
-                            rowBinding.txtRowStatus.text = "EXPIRED"
-                            dotDrawable.setColor(Color.parseColor("#FF1E27")) // Merah cerah
-                            rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#222222"))
-                            rowBinding.txtRowStatus.setTextColor(Color.parseColor("#888888"))
-                            rowBinding.txtRowExpired.setTextColor(Color.parseColor("#FF1E27"))
+                        // Mengatur gaya warna row layout berdasarkan status kalkulasi hari di atas
+                        when (memberStatus) {
+                            "ACTIVE" -> {
+                                rowBinding.txtRowStatus.text = "ACTIVE"
+                                dotDrawable.setColor(Color.parseColor("#00E676")) // Hijau Cerah
+                                rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#0A2F1D")) // Hijau Gelap
+                                rowBinding.txtRowStatus.setTextColor(Color.parseColor("#00E676"))
+                                rowBinding.txtRowExpired.setTextColor(Color.parseColor("#00E676"))
+                            }
+                            "CRITICAL" -> {
+                                rowBinding.txtRowStatus.text = "WARNING"
+                                dotDrawable.setColor(Color.parseColor("#FFD600")) // Kuning Cerah
+                                rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#3A3200")) // Kuning Gelap
+                                rowBinding.txtRowStatus.setTextColor(Color.parseColor("#FFD600"))
+                                rowBinding.txtRowExpired.setTextColor(Color.parseColor("#FFD600"))
+                            }
+                            "EXPIRED" -> {
+                                rowBinding.txtRowStatus.text = "EXPIRED"
+                                dotDrawable.setColor(Color.parseColor("#FF1E27")) // Merah Cerah
+                                rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#331415")) // Merah Gelap
+                                rowBinding.txtRowStatus.setTextColor(Color.parseColor("#FF1E27"))
+                                rowBinding.txtRowExpired.setTextColor(Color.parseColor("#FF1E27"))
+                            }
                         }
                         rowBinding.viewStatusDot.background = dotDrawable
 

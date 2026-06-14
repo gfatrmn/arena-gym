@@ -35,7 +35,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- FIXED COMPONENT: DROPDOWN FILTER PERIODE DATA -->
+            <!-- DROPDOWN FILTER PERIODE DATA -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,13 +57,17 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:background="@android:drawable/edit_text" android:backgroundTint="#2D2D2D" android:paddingStart="4dp"
-                    android:paddingEnd="4dp">
+                    android:background="@android:drawable/edit_text"
+                    android:backgroundTint="#2D2D2D"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp">
+
                     <Spinner
                         android:id="@+id/spinnerDashboardFilter"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:backgroundTint="#FFFFFF" android:spinnerMode="dropdown" />
+                        android:backgroundTint="#FFFFFF"
+                        android:spinnerMode="dropdown" />
                 </FrameLayout>
             </LinearLayout>
 
@@ -76,15 +80,16 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- GRID STATISTIK UPDATE: 3 CARD DINAMIS (2x2 Grid Layout) -->
             <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="2"
-                android:rowCount="1"
                 android:alignmentMode="alignMargins"
                 android:columnOrderPreserved="false"
                 android:layout_marginBottom="24dp">
 
+                <!-- CARD 1: TOTAL MEMBER AKTIF -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -101,7 +106,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TOTAL MEMBER AKTIF"
+                            android:text="TOTAL MEMBER"
                             android:textColor="#888888"
                             android:textSize="11sp"
                             android:textStyle="bold"/>
@@ -117,10 +122,44 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- CARD 2: NEW COMPONENT - TOTAL CHECK-IN PERIODE INI -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardBackgroundColor="#1E1E1E"
+                    app:cardCornerRadius="12dp"
+                    app:strokeWidth="0dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TOTAL CHECK-IN"
+                            android:textColor="#888888"
+                            android:textSize="11sp"
+                            android:textStyle="bold"/>
+                        <TextView
+                            android:id="@+id/txtDashTotalCheckIn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#00E676"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- CARD 3: TOTAL INCOME (Memakan 2 Kolom Penuh di Bawahnya) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="2"
                     android:layout_margin="4dp"
                     app:cardBackgroundColor="#1E1E1E"
                     app:cardCornerRadius="12dp"
@@ -142,8 +181,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rp0"
-                            android:textColor="#00E676"
-                            android:textSize="20sp"
+                            android:textColor="#FF1E27"
+                            android:textSize="22sp"
                             android:textStyle="bold"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -159,7 +198,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 
-            <!-- CARD LIST REGISTRASI MEMBER -->
+            <!-- REGISTRASI MEMBER TERBARU -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -167,13 +206,11 @@
                 app:cardCornerRadius="12dp"
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -182,7 +219,6 @@
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp"/>
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -193,9 +229,7 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.0" android:text="TELEPON" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="center"/>
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="TGL DAFTAR" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
-
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2D2D2D" android:layout_marginBottom="8dp"/>
-
                     <LinearLayout
                         android:id="@+id/containerRecentMembers"
                         android:layout_width="match_parent"
@@ -204,7 +238,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- CARD LIST RIWAYAT CHECK-IN -->
+            <!-- RIWAYAT CHECK-IN TERBARU -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -212,13 +246,11 @@
                 app:cardCornerRadius="12dp"
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -227,7 +259,6 @@
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp"/>
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -238,9 +269,7 @@
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="STATUS" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="center"/>
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="JAM MASUK" android:textColor="#666666" android:textSize="11sp" android:textStyle="bold" android:gravity="end"/>
                     </LinearLayout>
-
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2D2D2D" android:layout_marginBottom="8dp"/>
-
                     <LinearLayout
                         android:id="@+id/containerRecentCheckins"
                         android:layout_width="match_parent"

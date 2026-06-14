@@ -56,21 +56,22 @@
                 android:text="Kategori Produk"
                 android:textColor="#AAAAAA"
                 android:textSize="12sp"
-                android:layout_marginStart="12dp"
-                android:layout_marginBottom="4dp"/>
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="6dp"/>
 
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@android:drawable/btn_dropdown"
-                android:backgroundTint="#FFFFFF"
-                android:paddingStart="4dp"
-                android:paddingEnd="4dp">
+                android:layout_height="50dp"
+                android:background="@android:drawable/edit_text"
+                android:backgroundTint="#2D2D2D"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp">
 
                 <Spinner
                     android:id="@+id/dialogProductCategory"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:backgroundTint="#FFFFFF"
                     android:spinnerMode="dropdown" />
             </FrameLayout>
         </LinearLayout>

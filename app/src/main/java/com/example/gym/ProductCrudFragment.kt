@@ -1,6 +1,5 @@
 package com.example.gym
 
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -22,6 +21,7 @@ import com.example.gym.databinding.ActivityProductCrudBinding
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.NumberFormat
+import android.graphics.Color
 import java.util.*
 
 class ProductCrudFragment : Fragment() {
@@ -29,7 +29,6 @@ class ProductCrudFragment : Fragment() {
     private var _binding: ActivityProductCrudBinding? = null
     private val binding get() = _binding!!
 
-    // FIXED: Menyesuaikan nama file backend PHP terbaru milikmu
     private val urlWebService = "http://192.168.1.6/mobile/process_products.php"
 
     override fun onCreateView(
@@ -43,10 +42,8 @@ class ProductCrudFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Memuat data default produk pertama kali dibuka
         loadProductsData("")
 
-        // Listener Real-time Search Bar Produk
         binding.edSearchProduct.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -55,7 +52,6 @@ class ProductCrudFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // TRIGGER MODAL INSERT: Klik tombol FAB bulat merah untuk tambah data baru
         binding.fabAddProduct.setOnClickListener {
             showProductModal(null)
         }
@@ -77,19 +73,27 @@ class ProductCrudFragment : Fragment() {
                         val obj = jsonArray.getJSONObject(i)
                         val id = obj.optString("id", "")
                         val name = obj.optString("name", "-")
+                        val stockVal = obj.optInt("stock", 0)
+                        val unitStr = obj.optString("unit", "pcs")
 
                         val row = inflaterRow.inflate(R.layout.item_product_row, binding.containerProducts, false)
                         row.findViewById<TextView>(R.id.txtProdName).text = name
                         row.findViewById<TextView>(R.id.txtProdCatBrand).text = "${obj.optString("category", "-")} • ${obj.optString("brand", "-")}"
-                        row.findViewById<TextView>(R.id.txtProdStock).text = "Stok: ${obj.optString("stock", "0")} ${obj.optString("unit", "pcs")}"
                         row.findViewById<TextView>(R.id.txtProdPrice).text = currencyFormat.format(obj.optLong("price", 0))
 
-                        // TRIGGER MODAL EDIT
+                        // FIX: KONDISI WARNA KUNING UNTUK STOK < 5
+                        val txtStock = row.findViewById<TextView>(R.id.txtProdStock)
+                        txtStock.text = "Stok: $stockVal $unitStr"
+                        if (stockVal < 5) {
+                            txtStock.setTextColor(Color.parseColor("#FFD600")) // Kuning Warning
+                        } else {
+                            txtStock.setTextColor(Color.parseColor("#FFFFFF")) // Putih Normal
+                        }
+
                         row.findViewById<TextView>(R.id.btnProdEdit).setOnClickListener {
                             showProductModal(obj)
                         }
 
-                        // VALIDASI SEBELUM HAPUS: Menampilkan Dialog Konfirmasi bergaya Dark
                         row.findViewById<TextView>(R.id.btnProdDelete).setOnClickListener {
                             AlertDialog.Builder(requireActivity())
                                 .setTitle("Hapus Produk")
@@ -98,9 +102,7 @@ class ProductCrudFragment : Fragment() {
                                     deleteProductData(id)
                                     dialog.dismiss()
                                 }
-                                .setNegativeButton("Batal") { dialog, _ ->
-                                    dialog.dismiss()
-                                }
+                                .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
                                 .show()
                         }
 
@@ -115,16 +117,12 @@ class ProductCrudFragment : Fragment() {
         Volley.newRequestQueue(requireActivity()).add(request)
     }
 
-    // FUNGSI RENDER MODAL POP-UP DINAMIS (INSERT / UPDATE)
     private fun showProductModal(productObject: JSONObject?) {
         val dialogView = LayoutInflater.from(requireActivity()).inflate(R.layout.dialog_add_product, null)
 
         val txtTitle = dialogView.findViewById<TextView>(R.id.txtDialogTitle)
         val edName = dialogView.findViewById<EditText>(R.id.dialogProductName)
-
-        // FIXED: Mengubah EditText menjadi Spinner sesuai layout XML barumu
         val spinnerCategory = dialogView.findViewById<Spinner>(R.id.dialogProductCategory)
-
         val edPrice = dialogView.findViewById<EditText>(R.id.dialogProductPrice)
         val edStock = dialogView.findViewById<EditText>(R.id.dialogProductStock)
         val edUnit = dialogView.findViewById<EditText>(R.id.dialogProductUnit)
@@ -132,10 +130,23 @@ class ProductCrudFragment : Fragment() {
         val btnCancel = dialogView.findViewById<Button>(R.id.btnDialogCancel)
         val btnSave = dialogView.findViewById<Button>(R.id.btnDialogSave)
 
-        // FIXED: Setup Adapter untuk Spinner Kategori Produk
-        val categoriesList = arrayOf("Suplemen", "Minuman Sehat", "Snack")
-        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, categoriesList)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // FIX TANPA FILE BARU: Override getView & getDropDownView untuk memaksa teks menjadi Putih
+        val categoriesList = arrayOf("Suplemen", "Minuman Sehat", "Aksesoris Gym", "Sewa Loker", "Merchandise")
+        val adapter = object : ArrayAdapter<String>(requireActivity(), android.R.layout.simple_spinner_item, categoriesList) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getView(position, convertView, parent)
+                (view as? TextView)?.setTextColor(Color.WHITE) // Teks utama putih
+                return view
+            }
+
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                val view = super.getDropDownView(position, convertView, parent)
+                view.setBackgroundColor(Color.parseColor("#1E1E1E")) // Background drop-down gelap
+                (view as? TextView)?.setTextColor(Color.WHITE) // Teks drop-down putih
+                return view
+            }
+        }
+
         spinnerCategory.adapter = adapter
 
         val alertDialog = AlertDialog.Builder(requireActivity())
@@ -144,7 +155,6 @@ class ProductCrudFragment : Fragment() {
 
         alertDialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
-        // JIKA MODE EDIT DATA (productObject tidak null)
         if (productObject != null) {
             txtTitle.text = "Edit Detail Produk"
             edName.setText(productObject.optString("name", ""))
@@ -154,7 +164,6 @@ class ProductCrudFragment : Fragment() {
             edBrand.setText(productObject.optString("brand", ""))
             btnSave.text = "PERBARUI"
 
-            // FIXED: Set posisi terpilih Spinner secara otomatis berdasarkan data lama database
             val currentCategory = productObject.optString("category", "")
             val spinnerPosition = adapter.getPosition(currentCategory)
             if (spinnerPosition >= 0) {
@@ -171,9 +180,7 @@ class ProductCrudFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // FIXED: Menangkap nilai string terpilih dari Spinner Kategori
             val selectedCategory = spinnerCategory.selectedItem.toString()
-
             val params = HashMap<String, String>()
             params["name"] = name
             params["category"] = selectedCategory
@@ -196,7 +203,7 @@ class ProductCrudFragment : Fragment() {
                         Toast.makeText(requireActivity(), res.optString("message", "Selesai"), Toast.LENGTH_SHORT).show()
                         if (res.optString("status") == "success") {
                             alertDialog.dismiss()
-                            loadProductsData("") // Segarkan list produk
+                            loadProductsData("")
                         }
                     } catch (e: Exception) { e.printStackTrace() }
                 },

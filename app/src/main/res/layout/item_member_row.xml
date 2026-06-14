@@ -25,7 +25,7 @@
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
-        <!-- 2. BLOK INFORMASI TEKS (FIXED: Menggunakan LinearLayout vertikal dengan rata kiri sempurna) -->
+        <!-- 2. BLOK INFORMASI TEKS -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -64,13 +64,13 @@
                 android:gravity="center_vertical"
                 android:layout_marginTop="4dp">
 
-                <!-- Dot Indikator -->
+                <!-- FIXED: Dot Indikator menggunakan background XML drawable agar bisa diwarnai lewat Kotlin -->
                 <View
                     android:id="@+id/viewStatusDot"
                     android:layout_width="8dp"
                     android:layout_height="8dp"
                     android:layout_marginEnd="6dp"
-                    android:background="@android:color/holo_red_light" />
+                    android:background="@android:color/white" />
 
                 <!-- Teks Expired -->
                 <TextView
@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Expired: 2026-11-13"
-                    android:textColor="#FF1E27"
+                    android:textColor="#FFFFFF"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:maxLines="1" />
@@ -92,13 +92,13 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="6dp"
             app:strokeWidth="0dp"
-            app:cardBackgroundColor="#331415">
+            app:cardBackgroundColor="#2D2D2D">
             <TextView
                 android:id="@+id/txtRowStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MEMBER"
-                android:textColor="#FF1E27"
+                android:text="ACTIVE"
+                android:textColor="#FFFFFF"
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:paddingHorizontal="10dp"

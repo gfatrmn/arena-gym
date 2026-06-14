@@ -22,8 +22,6 @@ class DashboardFragment : Fragment() {
     private var _binding: ActivityDashboardBinding? = null
     private val binding get() = _binding!!
     private val urlWebService = "http://192.168.1.6/mobile/get_dashboard_data.php"
-
-    // Default filter adalah Hari Ini
     private var activeFilter = "hari_ini"
 
     override fun onCreateView(
@@ -37,13 +35,11 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Inisialisasi Dropdown Spinner
         val optionsList = arrayOf("Hari Ini", "Minggu Ini", "Bulan Ini")
         val spinnerAdapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, optionsList)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerDashboardFilter.adapter = spinnerAdapter
 
-        // 2. Set listener saat pilihan dropdown diubah oleh user
         binding.spinnerDashboardFilter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 activeFilter = when (position) {
@@ -59,7 +55,6 @@ class DashboardFragment : Fragment() {
     }
 
     private fun loadDashboardStatsData(filterRange: String) {
-        // Menggunakan POST agar bisa mengirimkan parameter filter_range
         val request = object : StringRequest(Request.Method.POST, urlWebService,
             { response ->
                 try {
@@ -68,7 +63,9 @@ class DashboardFragment : Fragment() {
                         maximumFractionDigits = 0
                     }
 
+                    // Mapping Data Statistik Utama Dashboard
                     binding.txtDashTotalMember.text = jsonObject.optInt("total_member_aktif", 0).toString()
+                    binding.txtDashTotalCheckIn.text = jsonObject.optInt("total_checkin_periode", 0).toString() // NEW INDIKATOR MAP
                     binding.txtDashIncomeToday.text = currencyFormat.format(jsonObject.optLong("pemasukan_hari_ini", 0))
 
                     val inflaterRow = LayoutInflater.from(requireActivity())
@@ -110,14 +107,10 @@ class DashboardFragment : Fragment() {
                     e.printStackTrace()
                 }
             },
-            {
-                Toast.makeText(requireActivity(), "Koneksi data dashboard bermasalah", Toast.LENGTH_SHORT).show()
-            }
+            { Toast.makeText(requireActivity(), "Koneksi data dashboard bermasalah", Toast.LENGTH_SHORT).show() }
         ) {
             override fun getParams(): MutableMap<String, String> {
-                val params = HashMap<String, String>()
-                params["filter_range"] = filterRange
-                return params
+                return hashMapOf("filter_range" to filterRange)
             }
         }
         Volley.newRequestQueue(requireActivity()).add(request)
