@@ -1,11 +1,14 @@
 package com.example.gym
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -38,8 +41,13 @@ class ReportFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Ambil data laporan keuangan dari server saat fragmen dimuat
+        // 1. Ambil data laporan keuangan dari server saat fragmen dimuat
         fetchReportDataServer()
+
+        // 2. FIXED: Inisialisasi Klik Tombol Logout Akun Arena Gym
+        binding.btnLogout.setOnClickListener {
+            showLogoutConfirmation()
+        }
     }
 
     private fun fetchReportDataServer() {
@@ -118,6 +126,44 @@ class ReportFragment : Fragment() {
             animateY(1000) // Efek animasi batang naik saat dibuka
             invalidate() // Refresh tampilan grafik
         }
+    }
+
+    // FUNGSI BARU: Menampilkan Dialog Konfirmasi Keluar dari Aplikasi
+    private fun showLogoutConfirmation() {
+        AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert).apply {
+            setTitle("Konfirmasi Keluar")
+            setMessage("Apakah Anda yakin ingin keluar dari akun Arena Gym?")
+            setPositiveButton("Ya, Keluar") { _, _ ->
+                performLogoutAction()
+            }
+            setNegativeButton("Batal") { dialog, _ ->
+                dialog.dismiss()
+            }
+            create().apply {
+                setOnShowListener {
+                    getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1E27"))
+                    getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#888888"))
+                }
+            }.show()
+        }
+    }
+
+    // FUNGSI BARU: Membersihkan Sesi Login dan Mengarahkan ke LoginActivity
+    private fun performLogoutAction() {
+        // 1. Bersihkan session login yang tersimpan di SharedPreferences HP
+        val sharedPref = requireActivity().getSharedPreferences("SESSION_PREF", Context.MODE_PRIVATE)
+        sharedPref.edit().clear().apply()
+
+        Toast.makeText(requireContext(), "Berhasil keluar dari sistem", Toast.LENGTH_SHORT).show()
+
+        // 2. Tendang paksa kembali ke halaman formulir LoginActivity
+        val intent = Intent(requireActivity(), LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+
+        // Hancurkan activity utama agar tidak bisa di-back kembali oleh user
+        requireActivity().finish()
     }
 
     override fun onDestroyView() {
