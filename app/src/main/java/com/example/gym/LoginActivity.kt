@@ -1,5 +1,6 @@
 package com.example.gym
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,10 +15,21 @@ import org.json.JSONObject
 
 class LoginActivity : AppCompatActivity() {
 
-    private val urlLoginService = "http://192.168.1.6/mobile/login.php" // Sesuaikan IP server lokalmu
+    private val urlLoginService = "http://192.168.1.6/mobile/login.php"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // KUNCI UTAMA 1: Cek apakah user sudah login sebelumnya saat aplikasi dibuka
+        val sharedPref = getSharedPreferences("SESSION_PREF", Context.MODE_PRIVATE)
+        val isLogin = sharedPref.getBoolean("is_login", false)
+        if (isLogin) {
+            val savedRole = sharedPref.getString("role", "kasir") ?: "kasir"
+            val savedName = sharedPref.getString("full_name", "Petugas")
+            navigateToDashboard(savedRole, savedName)
+            return // Hentikan onCreate agar layout login tidak berkedip muncul
+        }
+
         setContentView(R.layout.activity_login)
 
         val edEmail = findViewById<TextInputEditText>(R.id.edLoginEmail)
@@ -29,7 +41,7 @@ class LoginActivity : AppCompatActivity() {
             val password = edPassword.text.toString().trim()
 
             if (email.isEmpty()) {
-                edEmail.error = "Email tidak boleh kosong"
+                edEmail.error = "Username/Login tidak boleh kosong"
                 return@setOnClickListener
             }
             if (password.isEmpty()) {
@@ -57,35 +69,23 @@ class LoginActivity : AppCompatActivity() {
                         val userObj = jsonObject.getJSONObject("user")
                         val role = userObj.optString("role")
                         val name = userObj.optString("full_name")
+                        val email = userObj.optString("email")
 
-                        // LOGIKA PERADILAN ROLE: Mengarahkan halaman berdasarkan hak akses/role
-                        when (role) {
-                            "admin" -> {
-                                val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                                intent.putExtra("EXTRA_NAME", name)
-                                startActivity(intent)
-                                finish() // Tutup LoginActivity agar tidak bisa di-back
-                            }
-                            "kasir" -> {
-                                val intent = Intent(this@LoginActivity, MainActivity::class.java) // Atau CashierDashboardActivity
-                                intent.putExtra("EXTRA_NAME", name)
-                                startActivity(intent)
-                                finish()
-                            }
-//                            "member" -> {
-//                                val intent = Intent(this@LoginActivity, MemberDashboardActivity::class.java)
-//                                intent.putExtra("EXTRA_NAME", name)
-//                                startActivity(intent)
-//                                finish()
-//                            }
-                            else -> {
-                                Toast.makeText(this@LoginActivity, "Role pengguna tidak dikenali sistem!", Toast.LENGTH_LONG).show()
-                            }
+                        // KUNCI UTAMA 2: Simpan data ke SharedPreferences secara permanen
+                        val sharedPref = getSharedPreferences("SESSION_PREF", Context.MODE_PRIVATE)
+                        sharedPref.edit().apply {
+                            putBoolean("is_login", true)
+                            putString("role", role)
+                            putString("full_name", name)
+                            putString("email", email)
+                            apply() // Terapkan penyimpanan
                         }
+
+                        navigateToDashboard(role, name)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    Toast.makeText(this@LoginActivity, "Format data respon bermasalah", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "Format data respons bermasalah", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
@@ -100,7 +100,36 @@ class LoginActivity : AppCompatActivity() {
                 return params
             }
         }
-
         Volley.newRequestQueue(this).add(request)
+    }
+
+    // Fungsi pembantu routing halaman agar kode tidak duplikat
+    private fun navigateToDashboard(role: String, name: String?) {
+        when (role.lowercase()) {
+            "admin" -> {
+                val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                intent.putExtra("EXTRA_NAME", name)
+                intent.putExtra("EXTRA_ROLE", role)
+                startActivity(intent)
+                finish()
+            }
+            "kasir" -> {
+                val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                intent.putExtra("EXTRA_NAME", name)
+                intent.putExtra("EXTRA_ROLE", role)
+                startActivity(intent)
+                finish()
+            }
+//            "member" -> {
+//                val intent = Intent(this@LoginActivity, MemberDashboardActivity::class.java)
+//                intent.putExtra("EXTRA_NAME", name)
+//                intent.putExtra("EXTRA_ROLE", role)
+//                startActivity(intent)
+//                finish()
+//            }
+            else -> {
+                Toast.makeText(this@LoginActivity, "Role tidak dikenali sistem!", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }

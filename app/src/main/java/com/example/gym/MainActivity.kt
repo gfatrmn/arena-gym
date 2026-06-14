@@ -17,26 +17,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Mengamankan status bar agar tidak tumpang tindih
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
 
-        // 1. TANGKAP DATA SESI LOGIN (Nama & Role)
-        // Membaca data yang dilempar dari Intent LoginActivity atau dari SharedPreferences
+        // Ambil data dari SharedPreferences cache sesion
         val sharedPref = getSharedPreferences("SESSION_PREF", Context.MODE_PRIVATE)
+        val userRole = sharedPref.getString("role", "kasir") ?: "kasir"
+        val userName = sharedPref.getString("full_name", "Petugas")
 
-        // Mengambil role, jika lewat intent kosong, dia akan mengambil dari cache session storage
-        val userRole = intent.getStringExtra("EXTRA_ROLE") ?: sharedPref.getString("role", "kasir") ?: "kasir"
-        val userName = intent.getStringExtra("EXTRA_NAME") ?: sharedPref.getString("full_name", "Petugas") ?: "Petugas"
 
-        // Menyapa pengguna yang berhasil masuk ke sistem Arena Gym
-        Toast.makeText(this, "Login Sukses: Selamat Bekerja $userName!", Toast.LENGTH_SHORT).show()
-
-        // Set halaman pertama yang muncul saat aplikasi dibuka (DashboardFragment)
         if (savedInstanceState == null) {
             replaceFragment(DashboardFragment())
         }
 
-        // Navigasi Bottom Menu murni dengan sistem Fragment Swap
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_dashboard -> { replaceFragment(DashboardFragment()); true }
