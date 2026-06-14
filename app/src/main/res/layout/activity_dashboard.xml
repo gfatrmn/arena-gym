@@ -33,7 +33,39 @@
                 android:textColor="#FFFFFF"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="20dp"/>
+                android:layout_marginBottom="16dp"/>
+
+            <!-- FIXED COMPONENT: DROPDOWN FILTER PERIODE DATA -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#1E1E1E"
+                android:padding="12dp"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Periode Data:"
+                    android:textColor="#AAAAAA"
+                    android:textSize="14sp"
+                    android:layout_marginRight="12dp"/>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/edit_text" android:backgroundTint="#2D2D2D" android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
+                    <Spinner
+                        android:id="@+id/spinnerDashboardFilter"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:backgroundTint="#FFFFFF" android:spinnerMode="dropdown" />
+                </FrameLayout>
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -101,7 +133,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="PEMASUKAN HARI INI"
+                            android:text="TOTAL INCOME"
                             android:textColor="#888888"
                             android:textSize="11sp"
                             android:textStyle="bold"/>
@@ -110,8 +142,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Rp0"
-                            android:textColor="#FFFFFF"
-                            android:textSize="22sp"
+                            android:textColor="#00E676"
+                            android:textSize="20sp"
                             android:textStyle="bold"
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
@@ -127,6 +159,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- CARD LIST REGISTRASI MEMBER -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -171,6 +204,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- CARD LIST RIWAYAT CHECK-IN -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -217,5 +251,4 @@
 
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

@@ -44,25 +44,36 @@
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Kategori Produk"
-            android:textColorHint="#666666"
-            app:hintTextColor="#AAAAAA"
-            app:boxStrokeColor="#888888"
-            app:boxStrokeWidth="1.5dp"
-            app:boxStrokeWidthFocused="2dp"
-            android:layout_marginBottom="12dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/dialogProductCategory"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:text="Kategori Produk"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginStart="12dp"
+                android:layout_marginBottom="4dp"/>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@android:drawable/btn_dropdown"
+                android:backgroundTint="#FFFFFF"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp">
+
+                <Spinner
+                    android:id="@+id/dialogProductCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:spinnerMode="dropdown" />
+            </FrameLayout>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

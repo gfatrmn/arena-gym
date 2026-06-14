@@ -7,11 +7,10 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingTop="40dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+        android:paddingBottom="32dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,7 +33,56 @@
                 android:textColor="#FFFFFF"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="20dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="12dp">
+
+                <EditText
+                    android:id="@+id/edReportStartDate"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="#1E1E1E"
+                    android:hint="Dari Tanggal"
+                    android:textColorHint="#555555"
+                    android:textColor="#FFFFFF"
+                    android:padding="12dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:clickable="true"/>
+
+                <EditText
+                    android:id="@+id/edReportEndDate"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="#1E1E1E"
+                    android:hint="Sampai Tanggal"
+                    android:textColorHint="#555555"
+                    android:textColor="#FFFFFF"
+                    android:padding="12dp"
+                    android:textSize="14sp"
+                    android:focusable="false"
+                    android:clickable="true"/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnExportExcel"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="📊 EXPORT LAPORAN KE EXCEL"
+                android:backgroundTint="#00E676"
+                android:textColor="#121212"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp"
+                app:cornerRadius="8dp"/>
 
             <GridLayout
                 android:layout_width="match_parent"
@@ -75,7 +123,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CHECK-IN HARI INI" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="CHECK-IN PERIODE" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
                         <TextView android:id="@+id/txtRepTotalCheckIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -93,7 +141,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OMZET HARI INI" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="PENDAPATAN" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
                         <TextView android:id="@+id/txtRepIncomeToday" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rp0" android:textColor="#FF1E27" android:textSize="16sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -111,7 +159,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="16dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TOTAL KAS MASUK" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TOTAL PENDAPATAN" android:textColor="#888888" android:textSize="10sp" android:textStyle="bold"/>
                         <TextView android:id="@+id/txtRepIncomeAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rp0" android:textColor="#FFFF00" android:textSize="16sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -146,17 +194,15 @@
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:text="KELUAR AKUN"
+                android:text="LOG OUT"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:backgroundTint="#FF1E27"
                 app:cornerRadius="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"/>
 
         </LinearLayout>
     </ScrollView>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

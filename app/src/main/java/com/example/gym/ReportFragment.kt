@@ -1,8 +1,10 @@
 package com.example.gym
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +23,7 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import org.json.JSONObject
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 class ReportFragment : Fragment() {
@@ -29,6 +32,10 @@ class ReportFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val urlWebService = "http://192.168.1.6/mobile/get_report_data.php"
+    private val calendar = Calendar.getInstance()
+
+    private var startDateStr = ""
+    private var endDateStr = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,17 +48,81 @@ class ReportFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Ambil data laporan keuangan dari server saat fragmen dimuat
-        fetchReportDataServer()
+        // Muat data default pertama kali (tanpa filter tanggal)
+        fetchReportDataServer("", "")
 
-        // 2. FIXED: Inisialisasi Klik Tombol Logout Akun Arena Gym
+        // 1. SETUP DATE PICKER - TANGGAL MULAI
+        val startDatePicker = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            startDateStr = sdf.format(calendar.time)
+
+            val displayFormat = SimpleDateFormat("dd MMMM yyyy", Locale("in", "ID"))
+            binding.edReportStartDate.setText(displayFormat.format(calendar.time))
+
+            checkAndTriggerFilter()
+        }
+
+        binding.edReportStartDate.setOnClickListener {
+            DatePickerDialog(requireActivity(), startDatePicker,
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        // 2. SETUP DATE PICKER - TANGGAL AKHIR
+        val endDatePicker = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            endDateStr = sdf.format(calendar.time)
+
+            val displayFormat = SimpleDateFormat("dd MMMM yyyy", Locale("in", "ID"))
+            binding.edReportEndDate.setText(displayFormat.format(calendar.time))
+
+            checkAndTriggerFilter()
+        }
+
+        binding.edReportEndDate.setOnClickListener {
+            DatePickerDialog(requireActivity(), endDatePicker,
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        // 3. ACTION BUTTON EXPORT EXCEL BERDASARKAN FILTER TANGGAL
+        binding.btnExportExcel.setOnClickListener {
+            if (startDateStr.isEmpty() || endDateStr.isEmpty()) {
+                Toast.makeText(requireActivity(), "Harap tentukan rentang tanggal terlebih dahulu!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val urlExcelService = "http://192.168.1.6/mobile/export_excel_report.php?start_date=$startDateStr&end_date=$endDateStr"
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlExcelService))
+                startActivity(intent)
+                Toast.makeText(requireActivity(), "Mengekspor file rekap...", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireActivity(), "Browser pengunduhan gagal dibuka", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
+            }
+        }
+
+        // 4. ACTION LOGOUT
         binding.btnLogout.setOnClickListener {
             showLogoutConfirmation()
         }
     }
 
-    private fun fetchReportDataServer() {
-        val request = StringRequest(Request.Method.GET, urlWebService,
+    private fun checkAndTriggerFilter() {
+        if (startDateStr.isNotEmpty() && endDateStr.isNotEmpty()) {
+            fetchReportDataServer(startDateStr, endDateStr)
+        }
+    }
+
+    private fun fetchReportDataServer(start: String, end: String) {
+        val request = object : StringRequest(Request.Method.POST, urlWebService,
             { response ->
                 try {
                     val json = JSONObject(response)
@@ -59,22 +130,19 @@ class ReportFragment : Fragment() {
                         maximumFractionDigits = 0
                     }
 
-                    // 1. Tempel Teks Statistik Atas
-                    binding.txtRepTotalMember.text = json.getInt("total_member").toString()
-                    binding.txtRepTotalCheckIn.text = json.getInt("total_checkin").toString()
-                    binding.txtRepIncomeToday.text = currencyFormat.format(json.getLong("pemasukan_hari_ini"))
-                    binding.txtRepIncomeAll.text = currencyFormat.format(json.getLong("total_pemasukan"))
+                    binding.txtRepTotalMember.text = json.optInt("total_member", 0).toString()
+                    binding.txtRepTotalCheckIn.text = json.optInt("total_checkin", 0).toString()
+                    binding.txtRepIncomeToday.text = currencyFormat.format(json.optLong("pemasukan_hari_ini", 0))
+                    binding.txtRepIncomeAll.text = currencyFormat.format(json.optLong("total_pemasukan", 0))
 
-                    // 2. Olah Data Grafik Bulanan
                     val grafikArray = json.getJSONArray("grafik")
                     val entries = ArrayList<BarEntry>()
                     val labels = ArrayList<String>()
 
                     for (i in 0 until grafikArray.length()) {
                         val obj = grafikArray.getJSONObject(i)
-                        labels.add(obj.getString("bulan"))
-                        // Masukkan index X dan Nilai Uang Y
-                        entries.add(BarEntry(i.toFloat(), obj.getLong("total").toFloat()))
+                        labels.add(obj.optString("bulan", "-"))
+                        entries.add(BarEntry(i.toFloat(), obj.optLong("total", 0).toFloat()))
                     }
 
                     setupBarChartVisualization(entries, labels)
@@ -84,27 +152,28 @@ class ReportFragment : Fragment() {
                 }
             },
             { Toast.makeText(requireActivity(), "Gagal sinkronisasi data laporan keuangan", Toast.LENGTH_SHORT).show() }
-        )
+        ) {
+            override fun getParams(): MutableMap<String, String> {
+                return hashMapOf("start_date" to start, "end_date" to end)
+            }
+        }
         Volley.newRequestQueue(requireActivity()).add(request)
     }
 
     private fun setupBarChartVisualization(entries: ArrayList<BarEntry>, labels: ArrayList<String>) {
         val dataSet = BarDataSet(entries, "Total Omzet (Rp)").apply {
-            color = Color.parseColor("#FF1E27") // Warna batang Merah Arena Gym
+            color = Color.parseColor("#FF1E27")
             valueTextColor = Color.WHITE
             valueTextSize = 10f
         }
 
-        val barData = BarData(dataSet).apply {
-            barWidth = 0.5f
-        }
+        val barData = BarData(dataSet).apply { barWidth = 0.5f }
 
         binding.barChartReport.apply {
             data = barData
             description.isEnabled = false
             legend.textColor = Color.WHITE
 
-            // Konfigurasi Sumbu X (Bulan)
             xAxis.apply {
                 valueFormatter = IndexAxisValueFormatter(labels)
                 position = XAxis.XAxisPosition.BOTTOM
@@ -114,31 +183,22 @@ class ReportFragment : Fragment() {
                 setDrawGridLines(false)
             }
 
-            // Konfigurasi Sumbu Y Kiri
             axisLeft.apply {
                 textColor = Color.WHITE
                 axisMinimum = 0f
             }
-
-            // Hilangkan Sumbu Y Kanan agar rapi tidak numpuk
             axisRight.isEnabled = false
-
-            animateY(1000) // Efek animasi batang naik saat dibuka
-            invalidate() // Refresh tampilan grafik
+            animateY(1000)
+            invalidate()
         }
     }
 
-    // FUNGSI BARU: Menampilkan Dialog Konfirmasi Keluar dari Aplikasi
     private fun showLogoutConfirmation() {
         AlertDialog.Builder(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_Alert).apply {
             setTitle("Konfirmasi Keluar")
             setMessage("Apakah Anda yakin ingin keluar dari akun Arena Gym?")
-            setPositiveButton("Ya, Keluar") { _, _ ->
-                performLogoutAction()
-            }
-            setNegativeButton("Batal") { dialog, _ ->
-                dialog.dismiss()
-            }
+            setPositiveButton("Ya, Keluar") { _, _ -> performLogoutAction() }
+            setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
             create().apply {
                 setOnShowListener {
                     getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1E27"))
@@ -148,21 +208,15 @@ class ReportFragment : Fragment() {
         }
     }
 
-    // FUNGSI BARU: Membersihkan Sesi Login dan Mengarahkan ke LoginActivity
     private fun performLogoutAction() {
-        // 1. Bersihkan session login yang tersimpan di SharedPreferences HP
         val sharedPref = requireActivity().getSharedPreferences("SESSION_PREF", Context.MODE_PRIVATE)
         sharedPref.edit().clear().apply()
-
         Toast.makeText(requireContext(), "Berhasil keluar dari sistem", Toast.LENGTH_SHORT).show()
 
-        // 2. Tendang paksa kembali ke halaman formulir LoginActivity
         val intent = Intent(requireActivity(), LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         startActivity(intent)
-
-        // Hancurkan activity utama agar tidak bisa di-back kembali oleh user
         requireActivity().finish()
     }
 

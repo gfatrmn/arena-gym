@@ -7,8 +7,10 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -27,6 +29,7 @@ class ProductCrudFragment : Fragment() {
     private var _binding: ActivityProductCrudBinding? = null
     private val binding get() = _binding!!
 
+    // FIXED: Menyesuaikan nama file backend PHP terbaru milikmu
     private val urlWebService = "http://192.168.1.6/mobile/process_products.php"
 
     override fun onCreateView(
@@ -72,15 +75,14 @@ class ProductCrudFragment : Fragment() {
 
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
-                        val id = obj.getString("id")
-                        val name = obj.getString("name")
+                        val id = obj.optString("id", "")
+                        val name = obj.optString("name", "-")
 
-                        // Ganti 'this' menjadi 'requireActivity()'
                         val row = inflaterRow.inflate(R.layout.item_product_row, binding.containerProducts, false)
                         row.findViewById<TextView>(R.id.txtProdName).text = name
-                        row.findViewById<TextView>(R.id.txtProdCatBrand).text = "${obj.getString("category")} • ${obj.optString("brand", "-")}"
-                        row.findViewById<TextView>(R.id.txtProdStock).text = "Stok: ${obj.getString("stock")} ${obj.getString("unit")}"
-                        row.findViewById<TextView>(R.id.txtProdPrice).text = currencyFormat.format(obj.getLong("price"))
+                        row.findViewById<TextView>(R.id.txtProdCatBrand).text = "${obj.optString("category", "-")} • ${obj.optString("brand", "-")}"
+                        row.findViewById<TextView>(R.id.txtProdStock).text = "Stok: ${obj.optString("stock", "0")} ${obj.optString("unit", "pcs")}"
+                        row.findViewById<TextView>(R.id.txtProdPrice).text = currencyFormat.format(obj.optLong("price", 0))
 
                         // TRIGGER MODAL EDIT
                         row.findViewById<TextView>(R.id.btnProdEdit).setOnClickListener {
@@ -119,7 +121,10 @@ class ProductCrudFragment : Fragment() {
 
         val txtTitle = dialogView.findViewById<TextView>(R.id.txtDialogTitle)
         val edName = dialogView.findViewById<EditText>(R.id.dialogProductName)
-        val edCategory = dialogView.findViewById<EditText>(R.id.dialogProductCategory)
+
+        // FIXED: Mengubah EditText menjadi Spinner sesuai layout XML barumu
+        val spinnerCategory = dialogView.findViewById<Spinner>(R.id.dialogProductCategory)
+
         val edPrice = dialogView.findViewById<EditText>(R.id.dialogProductPrice)
         val edStock = dialogView.findViewById<EditText>(R.id.dialogProductStock)
         val edUnit = dialogView.findViewById<EditText>(R.id.dialogProductUnit)
@@ -127,21 +132,34 @@ class ProductCrudFragment : Fragment() {
         val btnCancel = dialogView.findViewById<Button>(R.id.btnDialogCancel)
         val btnSave = dialogView.findViewById<Button>(R.id.btnDialogSave)
 
+        // FIXED: Setup Adapter untuk Spinner Kategori Produk
+        val categoriesList = arrayOf("Suplemen", "Minuman Sehat", "Snack")
+        val adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_spinner_item, categoriesList)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerCategory.adapter = adapter
+
         val alertDialog = AlertDialog.Builder(requireActivity())
             .setView(dialogView)
             .create()
 
         alertDialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
 
+        // JIKA MODE EDIT DATA (productObject tidak null)
         if (productObject != null) {
             txtTitle.text = "Edit Detail Produk"
-            edName.setText(productObject.getString("name"))
-            edCategory.setText(productObject.getString("category"))
-            edPrice.setText(productObject.getString("price"))
-            edStock.setText(productObject.getString("stock"))
-            edUnit.setText(productObject.getString("unit"))
+            edName.setText(productObject.optString("name", ""))
+            edPrice.setText(productObject.optString("price", ""))
+            edStock.setText(productObject.optString("stock", ""))
+            edUnit.setText(productObject.optString("unit", "pcs"))
             edBrand.setText(productObject.optString("brand", ""))
             btnSave.text = "PERBARUI"
+
+            // FIXED: Set posisi terpilih Spinner secara otomatis berdasarkan data lama database
+            val currentCategory = productObject.optString("category", "")
+            val spinnerPosition = adapter.getPosition(currentCategory)
+            if (spinnerPosition >= 0) {
+                spinnerCategory.setSelection(spinnerPosition)
+            }
         }
 
         btnCancel.setOnClickListener { alertDialog.dismiss() }
@@ -153,9 +171,12 @@ class ProductCrudFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            // FIXED: Menangkap nilai string terpilih dari Spinner Kategori
+            val selectedCategory = spinnerCategory.selectedItem.toString()
+
             val params = HashMap<String, String>()
             params["name"] = name
-            params["category"] = edCategory.text.toString().trim()
+            params["category"] = selectedCategory
             params["price"] = edPrice.text.toString().trim().ifEmpty { "0" }
             params["stock"] = edStock.text.toString().trim().ifEmpty { "0" }
             params["unit"] = edUnit.text.toString().trim().ifEmpty { "pcs" }
@@ -163,19 +184,21 @@ class ProductCrudFragment : Fragment() {
 
             if (productObject != null) {
                 params["mode"] = "update"
-                params["id"] = productObject.getString("id")
+                params["id"] = productObject.optString("id", "")
             } else {
                 params["mode"] = "insert"
             }
 
             val request = object : StringRequest(Method.POST, urlWebService,
                 { response ->
-                    val res = JSONObject(response)
-                    Toast.makeText(requireActivity(), res.getString("message"), Toast.LENGTH_SHORT).show()
-                    if (res.getString("status") == "success") {
-                        alertDialog.dismiss()
-                        loadProductsData("")
-                    }
+                    try {
+                        val res = JSONObject(response)
+                        Toast.makeText(requireActivity(), res.optString("message", "Selesai"), Toast.LENGTH_SHORT).show()
+                        if (res.optString("status") == "success") {
+                            alertDialog.dismiss()
+                            loadProductsData("") // Segarkan list produk
+                        }
+                    } catch (e: Exception) { e.printStackTrace() }
                 },
                 { Toast.makeText(requireActivity(), "Gagal memproses ke server", Toast.LENGTH_SHORT).show() }
             ) {
@@ -190,9 +213,11 @@ class ProductCrudFragment : Fragment() {
     private fun deleteProductData(productId: String) {
         val request = object : StringRequest(Method.POST, urlWebService,
             { response ->
-                val res = JSONObject(response)
-                Toast.makeText(requireActivity(), res.getString("message"), Toast.LENGTH_SHORT).show()
-                loadProductsData("")
+                try {
+                    val res = JSONObject(response)
+                    Toast.makeText(requireActivity(), res.optString("message", "Selesai"), Toast.LENGTH_SHORT).show()
+                    loadProductsData("")
+                } catch (e: Exception) { e.printStackTrace() }
             },
             { Toast.makeText(requireActivity(), "Gagal menghapus", Toast.LENGTH_SHORT).show() }
         ) {
