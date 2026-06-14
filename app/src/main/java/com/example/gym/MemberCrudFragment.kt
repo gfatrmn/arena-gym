@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -71,27 +72,13 @@ class MemberCrudFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Set Kapsul Search Bar
-        val searchParentView = binding.edSearch.parent as? View
-        searchParentView?.background = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            setColor(Color.parseColor("#1E1E1E"))
-            cornerRadius = 100f
-        }
-
-        // Set Kapsul Radio Button Filter
-        for (i in 0 until binding.rgStatusFilter.childCount) {
-            val rb = binding.rgStatusFilter.getChildAt(i) as RadioButton
-            rb.background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = 100f
-            }
-        }
+        // Terapkan style awal untuk filter kapsul Radio Button
+        setupRadioButtonsStyle()
 
         // Muat data default pertama kali
         showMembersData("", "all")
 
-        // Listener Search Bar
+        // Listener Real-time Search Bar (Nama / Nomor Telepon)
         binding.edSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -100,19 +87,10 @@ class MemberCrudFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Listener Radio Button Filter Status
+        // Listener Perubahan Filter Radio Button Status
         binding.rgStatusFilter.setOnCheckedChangeListener { _, checkedId ->
-            for (i in 0 until binding.rgStatusFilter.childCount) {
-                val rb = binding.rgStatusFilter.getChildAt(i) as RadioButton
-                rb.setTextColor(Color.parseColor("#888888"))
-                rb.setTypeface(null, android.graphics.Typeface.NORMAL)
-            }
-
-            val activeRb = binding.root.findViewById<RadioButton>(checkedId)
-            activeRb?.let {
-                it.setTextColor(Color.parseColor("#FFFFFF"))
-                it.setTypeface(null, android.graphics.Typeface.BOLD)
-            }
+            // Update visual background kapsul merah & teks putih tebal secara real-time
+            setupRadioButtonsStyle()
 
             currentStatusFilter = when (checkedId) {
                 R.id.rbActive -> "active"
@@ -123,9 +101,37 @@ class MemberCrudFragment : Fragment() {
             showMembersData(binding.edSearch.text.toString().trim(), currentStatusFilter)
         }
 
-        // Tombol tambah data baru
+        // Tombol FAB tambah data baru
         binding.fabAddMember.setOnClickListener {
             openMemberModal(null)
+        }
+    }
+
+    // FUNGSI UTAMA: Mewarnai Kapsul Radio Button Secara Dinamis & Responsif
+    private fun setupRadioButtonsStyle() {
+        try {
+            for (i in 0 until binding.rgStatusFilter.childCount) {
+                val view = binding.rgStatusFilter.getChildAt(i)
+                if (view is RadioButton) {
+                    if (view.isChecked) {
+                        // Jika dipilih: Aktifkan background merah Arena Gym & teks putih tebal
+                        view.background = GradientDrawable().apply {
+                            shape = GradientDrawable.RECTANGLE
+                            setColor(Color.parseColor("#FF1E27"))
+                            cornerRadius = 100f
+                        }
+                        view.setTextColor(Color.parseColor("#FFFFFF"))
+                        view.setTypeface(null, Typeface.BOLD)
+                    } else {
+                        // Jika pasif: Hilangkan background, teks abu-abu tipis biasa
+                        view.background = null
+                        view.setTextColor(Color.parseColor("#888888"))
+                        view.setTypeface(null, Typeface.NORMAL)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -263,7 +269,7 @@ class MemberCrudFragment : Fragment() {
                             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                                 putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
                             }
-                            @SuppressWarnings("deprecation")
+                            @Suppress("DEPRECATION")
                             startActivityForResult(intent, REQ_CAMERA)
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -275,7 +281,7 @@ class MemberCrudFragment : Fragment() {
                             type = "image/*"
                             action = Intent.ACTION_GET_CONTENT
                         }
-                        @SuppressWarnings("deprecation")
+                        @Suppress("DEPRECATION")
                         startActivityForResult(Intent.createChooser(intent, "Pilih Foto Atlet"), REQ_GALLERY)
                     }
                 }
@@ -287,7 +293,7 @@ class MemberCrudFragment : Fragment() {
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @SuppressWarnings("deprecation")
+        @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
             modalImageViewPointer?.let { imageView ->
@@ -332,6 +338,7 @@ class MemberCrudFragment : Fragment() {
                 try {
                     val jsonArray = JSONArray(response)
                     binding.containerMembersList.removeAllViews()
+                    val inflaterRow = LayoutInflater.from(requireActivity())
 
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
@@ -342,7 +349,9 @@ class MemberCrudFragment : Fragment() {
                         val photoUrl = obj.optString("photo_url", "")
                         val expiresAt = obj.optString("expires_at", "-")
 
-                        val rowBinding = ItemMemberRowBinding.inflate(LayoutInflater.from(requireActivity()), binding.containerMembersList, false)
+                        // Render baris menggunakan View Binding kustom bawaan layout
+                        val rowBinding = ItemMemberRowBinding.inflate(inflaterRow, binding.containerMembersList, false)
+
                         rowBinding.txtRowName.text = name
                         rowBinding.txtRowPhone.text = if (phone == "null" || phone.isEmpty()) "-" else phone
                         rowBinding.txtRowStatus.text = status.uppercase()
@@ -356,15 +365,18 @@ class MemberCrudFragment : Fragment() {
                         val imageSource = if (photoUrl != "null" && photoUrl.isNotEmpty()) photoUrl else "https://ui-avatars.com/api/?name=$name&background=333333&color=ffffff"
                         Glide.with(requireActivity()).load(imageSource).circleCrop().into(rowBinding.imgAthlete)
 
+                        // Konfigurasi dot status & warna lencana kanan (Hijau Aktif / Abu-abu Pasif)
                         val dotDrawable = GradientDrawable().apply { shape = GradientDrawable.OVAL }
                         if (status == "active" || status == "aktif" || status == "member") {
-                            dotDrawable.setColor(Color.parseColor("#FF1E27"))
+                            dotDrawable.setColor(Color.parseColor("#00E676")) // Hijau Stabilo Aktif
                             rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#331415"))
                             rowBinding.txtRowStatus.setTextColor(Color.parseColor("#FF1E27"))
+                            rowBinding.txtRowExpired.setTextColor(Color.parseColor("#00E676"))
                         } else {
-                            dotDrawable.setColor(Color.parseColor("#555555"))
+                            dotDrawable.setColor(Color.parseColor("#FF1E27")) // Merah Expired
                             rowBinding.cardStatusBadge.setCardBackgroundColor(Color.parseColor("#222222"))
                             rowBinding.txtRowStatus.setTextColor(Color.parseColor("#888888"))
+                            rowBinding.txtRowExpired.setTextColor(Color.parseColor("#FF1E27"))
                         }
                         rowBinding.viewStatusDot.background = dotDrawable
 
