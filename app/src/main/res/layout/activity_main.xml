@@ -21,10 +21,11 @@
         app:itemTextColor="@color/nav_item_color"
         app:menu="@menu/bottom_nav_menu"
         android:elevation="12dp"
-        app:itemIconSize="20dp"
+        app:itemIconSize="22dp"
         app:labelVisibilityMode="labeled"
         app:itemRippleColor="@android:color/transparent"
         app:itemBackground="@android:color/transparent"
-        app:itemActiveIndicatorStyle="@null" app:layout_constraintBottom_toBottomOf="parent"/>
+        app:itemActiveIndicatorStyle="@null"
+        app:itemPaddingTop="14dp"    app:itemPaddingBottom="22dp" app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
